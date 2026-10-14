@@ -6,7 +6,7 @@ A student app, admin panel and backend server communicate through a REST API, us
 
 ## Team
 
-- Julia Kaczynska
+- [Julia Kaczynska](https://github.com/juliakaczpw)
 - [Bade Salman](https://github.com/badesalman)
 - [Eray Gülerler](https://github.com/ErayGulerler)
 - [Mykhailo Solop](https://github.com/mixasolop)
