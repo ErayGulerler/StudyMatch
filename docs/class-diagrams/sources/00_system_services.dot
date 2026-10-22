@@ -1,0 +1,26 @@
+// StudyMatch UML class diagram. Edit this DOT file and render with Graphviz.
+digraph StudyMatch {
+graph [rankdir="LR", bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.85", splines="polyline", outputorder="edgesfirst", fontname="Arial", fontsize="16"];
+node [shape="plain", fontname="Arial", fontsize="13"];
+edge [fontname="Arial", fontsize="11", color="#38404A", fontcolor="#222222", penwidth="1.2", arrowsize="0.75", arrowhead="none", labeldistance="1.9"];
+"StudentApplication" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;client&gt;&gt;</FONT><BR/><B>StudentApplication</B></TD></TR></TABLE>>];
+"AdminPanel" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;client&gt;&gt;</FONT><BR/><B>AdminPanel</B></TD></TR></TABLE>>];
+subgraph cluster_backend { label="Backend Server"; color="#7B8794"; style="rounded"; margin="22";
+"IdentityService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>IdentityService</B></TD></TR><TR><TD ALIGN="LEFT">+ validateSession(token)<BR ALIGN="LEFT"/>+ lookUpAccount(idOrEmail)<BR ALIGN="LEFT"/>+ changeAccountStatus(id, status)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"ProfileService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>ProfileService</B></TD></TR><TR><TD ALIGN="LEFT">+ saveProfile(token, data)<BR ALIGN="LEFT"/>+ manageAvailability(token, change)<BR ALIGN="LEFT"/>+ providePublicProfile(id)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"MatchingService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>MatchingService</B></TD></TR><TR><TD ALIGN="LEFT">+ findPartners(token, filters)<BR ALIGN="LEFT"/>+ calculateScore(a, b)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"GroupSessionService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>GroupSessionService</B></TD></TR><TR><TD ALIGN="LEFT">+ createGroup(token, data)<BR ALIGN="LEFT"/>+ joinGroup(token, id)<BR ALIGN="LEFT"/>+ scheduleSession(token, groupId, data)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"ModerationService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>ModerationService</B></TD></TR><TR><TD ALIGN="LEFT">+ submitReport(token, id, reason)<BR ALIGN="LEFT"/>+ resolveReport(token, id, outcome)<BR ALIGN="LEFT"/>+ changeStudentStatus(token, id, status, reason)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"MatchingService" -> "ProfileService" [label="reads profiles / availability", style="dashed", arrowhead="open"];
+"MatchingService" -> "IdentityService" [label="UC-05 / UC-06", style="dashed", arrowhead="open"];
+"ProfileService" -> "IdentityService" [label="UC-05 / UC-06", style="dashed", arrowhead="open"];
+"GroupSessionService" -> "IdentityService" [label="UC-05", style="dashed", arrowhead="open"];
+"GroupSessionService" -> "ProfileService" [label="UC-13", style="dashed", arrowhead="open"];
+"ModerationService" -> "IdentityService" [label="UC-05 / UC-06 / UC-07", style="dashed", arrowhead="open"];
+"ModerationService" -> "ProfileService" [label="UC-13", style="dashed", arrowhead="open"];
+}
+"StudentApplication" -> "GroupSessionService" [label="REST / HTTPS", style="dashed", arrowhead="open"];
+"StudentApplication" -> "MatchingService" [label="REST / HTTPS", style="dashed", arrowhead="open"];
+"AdminPanel" -> "ModerationService" [label="REST / HTTPS", style="dashed", arrowhead="open"];
+{rank=same; StudentApplication; AdminPanel;}
+}

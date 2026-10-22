@@ -1,0 +1,22 @@
+// StudyMatch UML class diagram. Edit this DOT file and render with Graphviz.
+digraph StudyMatch {
+graph [rankdir="TB", bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.85", splines="polyline", outputorder="edgesfirst", fontname="Arial", fontsize="16"];
+node [shape="plain", fontname="Arial", fontsize="13"];
+edge [fontname="Arial", fontsize="11", color="#38404A", fontcolor="#222222", penwidth="1.2", arrowsize="0.75", arrowhead="none", labeldistance="1.9"];
+"Account" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;entity&gt;&gt;</FONT><BR/><B>Account</B></TD></TR><TR><TD ALIGN="LEFT">- id: UUID<BR ALIGN="LEFT"/>- displayName: String<BR ALIGN="LEFT"/>- email: String {unique}<BR ALIGN="LEFT"/>- passwordHash: String<BR ALIGN="LEFT"/>- role: AccountRole<BR ALIGN="LEFT"/>- status: AccountStatus<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ isActive(): Boolean<BR ALIGN="LEFT"/>+ changeStatus(status): void<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"AuthSession" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;entity&gt;&gt;</FONT><BR/><B>AuthSession</B></TD></TR><TR><TD ALIGN="LEFT">- id: UUID<BR ALIGN="LEFT"/>- tokenHash: String<BR ALIGN="LEFT"/>- expiresAt: DateTime<BR ALIGN="LEFT"/>- revokedAt: DateTime [0..1]<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ isValid(now): Boolean<BR ALIGN="LEFT"/>+ revoke(now): void<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"IdentityService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>IdentityService</B></TD></TR><TR><TD ALIGN="LEFT">+ registerStudent(data): Account<BR ALIGN="LEFT"/>+ logIn(email, password): SessionToken<BR ALIGN="LEFT"/>+ logOut(token): void<BR ALIGN="LEFT"/>+ validateSession(token): Principal<BR ALIGN="LEFT"/>+ lookUpAccount(idOrEmail): AccountSummary<BR ALIGN="LEFT"/>+ changeAccountStatus(id, status): void<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"Principal" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;value&gt;&gt;</FONT><BR/><B>Principal</B></TD></TR><TR><TD ALIGN="LEFT">+ accountId: UUID<BR ALIGN="LEFT"/>+ role: AccountRole<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"AccountSummary" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;value&gt;&gt;</FONT><BR/><B>AccountSummary</B></TD></TR><TR><TD ALIGN="LEFT">+ accountId: UUID<BR ALIGN="LEFT"/>+ displayName: String<BR ALIGN="LEFT"/>+ role: AccountRole<BR ALIGN="LEFT"/>+ status: AccountStatus<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"AccountRole" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;enumeration&gt;&gt;</FONT><BR/><B>AccountRole</B></TD></TR><TR><TD ALIGN="LEFT">STUDENT<BR ALIGN="LEFT"/>ADMIN<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"AccountStatus" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;enumeration&gt;&gt;</FONT><BR/><B>AccountStatus</B></TD></TR><TR><TD ALIGN="LEFT">ACTIVE<BR ALIGN="LEFT"/>SUSPENDED<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"Account" -> "AuthSession" [label="owns", dir="both", arrowtail="diamond", arrowhead="none", taillabel="1", headlabel="0..*"];
+"IdentityService" -> "Account" [label="creates / reads / updates", style="dashed", arrowhead="open"];
+"IdentityService" -> "AuthSession" [label="issues / validates / revokes", style="dashed", arrowhead="open"];
+"IdentityService" -> "Principal" [label="returns after validation", style="dashed", arrowhead="open"];
+"IdentityService" -> "AccountSummary" [label="returns to services", style="dashed", arrowhead="open"];
+"Account" -> "AccountRole" [label="role", style="dashed", arrowhead="open"];
+"Account" -> "AccountStatus" [label="status", style="dashed", arrowhead="open"];
+{rank=same; Account; AuthSession;}
+{rank=same; Principal; AccountSummary; AccountRole; AccountStatus;}
+}

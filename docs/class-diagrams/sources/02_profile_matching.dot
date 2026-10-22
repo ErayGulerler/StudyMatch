@@ -1,0 +1,24 @@
+// StudyMatch UML class diagram. Edit this DOT file and render with Graphviz.
+digraph StudyMatch {
+graph [rankdir="TB", bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.85", splines="polyline", outputorder="edgesfirst", fontname="Arial", fontsize="16"];
+node [shape="plain", fontname="Arial", fontsize="13"];
+edge [fontname="Arial", fontsize="11", color="#38404A", fontcolor="#222222", penwidth="1.2", arrowsize="0.75", arrowhead="none", labeldistance="1.9"];
+"StudyProfile" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;entity&gt;&gt;</FONT><BR/><B>StudyProfile</B></TD></TR><TR><TD ALIGN="LEFT">- studentId: UUID {unique}<BR ALIGN="LEFT"/>- university: String<BR ALIGN="LEFT"/>- subjects: Set&lt;SubjectId&gt;<BR ALIGN="LEFT"/>- studyLevel: String<BR ALIGN="LEFT"/>- preferredStyle: StudyStyle<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ update(data): void<BR ALIGN="LEFT"/>+ isComplete(): Boolean<BR ALIGN="LEFT"/>+ toPublicProfile(name): PublicProfile<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"AvailabilitySlot" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;entity&gt;&gt;</FONT><BR/><B>AvailabilitySlot</B></TD></TR><TR><TD ALIGN="LEFT">- id: UUID<BR ALIGN="LEFT"/>- weekday: DayOfWeek<BR ALIGN="LEFT"/>- startTime: LocalTime<BR ALIGN="LEFT"/>- endTime: LocalTime<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ overlaps(other): Boolean<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"ProfileService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>ProfileService</B></TD></TR><TR><TD ALIGN="LEFT">+ saveProfile(token, data): StudyProfile<BR ALIGN="LEFT"/>+ manageAvailability(token, change): void<BR ALIGN="LEFT"/>+ providePublicProfile(id): PublicProfile<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"MatchingService" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;service&gt;&gt;</FONT><BR/><B>MatchingService</B></TD></TR><TR><TD ALIGN="LEFT">+ findPartners(token, filters): MatchResult[]<BR ALIGN="LEFT"/>+ calculateScore(a, b): Integer<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"MatchFilters" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;value&gt;&gt;</FONT><BR/><B>MatchFilters</B></TD></TR><TR><TD ALIGN="LEFT">+ university: String [0..1]<BR ALIGN="LEFT"/>+ subjectId: SubjectId [0..1]<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"MatchResult" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;value&gt;&gt;</FONT><BR/><B>MatchResult</B></TD></TR><TR><TD ALIGN="LEFT">+ candidate: PublicProfile<BR ALIGN="LEFT"/>+ score: Integer<BR ALIGN="LEFT"/>+ sharedSubjects: Set&lt;SubjectId&gt;<BR ALIGN="LEFT"/>+ overlap: WeeklyTimeRange[]<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"PublicProfile" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;value&gt;&gt;</FONT><BR/><B>PublicProfile</B></TD></TR><TR><TD ALIGN="LEFT">+ studentId: UUID<BR ALIGN="LEFT"/>+ displayName: String<BR ALIGN="LEFT"/>+ university: String<BR ALIGN="LEFT"/>+ subjects: Set&lt;SubjectId&gt;<BR ALIGN="LEFT"/>+ studyLevel: String<BR ALIGN="LEFT"/>+ preferredStyle: StudyStyle<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"StudyStyle" [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8"><TR><TD BGCOLOR="#F3F4F6" ALIGN="CENTER"><FONT POINT-SIZE="11">&lt;&lt;enumeration&gt;&gt;</FONT><BR/><B>StudyStyle</B></TD></TR><TR><TD ALIGN="LEFT">QUIET_TOGETHER<BR ALIGN="LEFT"/>DISCUSSION<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+"StudyProfile" -> "AvailabilitySlot" [label="weekly availability", dir="both", arrowtail="diamond", arrowhead="none", taillabel="1", headlabel="0..*"];
+"ProfileService" -> "StudyProfile" [label="manages", style="dashed", arrowhead="open"];
+"MatchingService" -> "StudyProfile" [label="compares", style="dashed", arrowhead="open"];
+"MatchingService" -> "MatchFilters" [label="applies", style="dashed", arrowhead="open"];
+"MatchingService" -> "MatchResult" [label="returns", style="dashed", arrowhead="open"];
+"ProfileService" -> "PublicProfile" [label="returns", style="dashed", arrowhead="open"];
+"StudyProfile" -> "StudyStyle" [label="preferredStyle", style="dashed", arrowhead="open"];
+{rank=same; ProfileService; MatchingService;}
+{rank=same; StudyProfile; MatchResult; MatchFilters;}
+{rank=same; AvailabilitySlot; PublicProfile; StudyStyle;}
+}
