@@ -1,0 +1,13 @@
+digraph G { 
+graph [rankdir=TB,bgcolor="white",pad="0.4",nodesep="0.6",ranksep="0.85",fontname="Arial",fontsize=18,label="Study Session State Diagram",labelloc=t];
+node [shape=box,style="rounded,filled",fillcolor="#EAF4F4",color="#168B85",fontname="Arial",fontsize=12,margin="0.25,0.16"];
+edge [fontname="Arial",fontsize=10,color="#38404A",arrowsize=0.8];
+start [shape=point,width=0.17,color=black,fillcolor=black,label=""];
+scheduled [label="SCHEDULED"]; cancelled [label="CANCELLED"];
+start -> scheduled [label="GroupSessionService.scheduleSession(token, groupId, data)\n[valid organiser, active group, valid schedule]"];
+scheduled -> scheduled [label="GroupSessionService.editSession(token, id, data)\n/ StudySession.edit(data, now)\n[organiser, upcoming, valid data]"];
+scheduled -> cancelled [label="GroupSessionService.cancelSession(token, id)\n/ StudySession.cancel(now)\n[organiser and upcoming]"];
+scheduled -> cancelled [label="GroupSessionService.deleteGroup(token, groupId)\n[future session of deleted group]"];
+note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",fontsize=10,label="Rejected: invalid edit, non-organiser action, past session edit.\nCANCELLED sessions cannot be edited or reactivated.\nPast scheduled sessions remain SCHEDULED in this model.\nisUpcoming(now) is a query, not a state transition."];
+cancelled -> note [style=dotted,arrowhead=none,constraint=false];
+}

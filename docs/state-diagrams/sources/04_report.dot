@@ -1,0 +1,11 @@
+digraph G { 
+graph [rankdir=TB,bgcolor="white",pad="0.4",nodesep="0.6",ranksep="0.85",fontname="Arial",fontsize=18,label="Report State Diagram",labelloc=t];
+node [shape=box,style="rounded,filled",fillcolor="#EAF4F4",color="#168B85",fontname="Arial",fontsize=12,margin="0.25,0.16"];
+edge [fontname="Arial",fontsize=10,color="#38404A",arrowsize=0.8];
+start [shape=point,width=0.17,color=black,fillcolor=black,label=""];
+pending [label="PENDING"]; resolved [label="RESOLVED"];
+start -> pending [label="ModerationService.submitReport(token, studentId, reason)\n[valid reason and other student]"];
+pending -> resolved [label="ModerationService.resolveReport(token, id, outcome)\n/ Report.resolve(adminId, outcome, now)\n[authorized admin and written outcome]"];
+note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",fontsize=10,label="Viewing or filtering reports does not change their state.\nRejected: empty reason, self-report, unauthorized resolution.\nResolving a report does not automatically suspend an account.\nRESOLVED is terminal for this report lifecycle."];
+resolved -> note [style=dotted,arrowhead=none,constraint=false];
+}
