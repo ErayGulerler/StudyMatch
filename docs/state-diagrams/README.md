@@ -12,3 +12,7 @@ Four key business object lifecycles are modelled: Account, StudyGroup, StudySess
 **Notation:** Dotted connectors lead to explanatory notes; they are not state transitions. Invalid actions preserve the current state. Guards are business rules checked by the relevant services. Cross-object side effects are described in notes rather than falsely shown as transitions of the same object.
 
 **Follow-up:** At the later checkpoint, confirm any implementation-level status-change audit mechanism and whether past scheduled sessions need an additional state.
+
+## Checkpoint 2 review (2026-11-03)
+
+Rejected requests are shown as dashed self-transitions: they leave the business object in the same state. DELETED, CANCELLED, and RESOLVED have no outgoing state-changing transitions in the current model; no UML final pseudostate is used because the object record may continue to exist. Group deletion triggers cancellation of future sessions as specified by US-11.

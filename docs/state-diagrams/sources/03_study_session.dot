@@ -8,6 +8,7 @@ start -> scheduled [label="GroupSessionService.scheduleSession(token, groupId, d
 scheduled -> scheduled [label="GroupSessionService.editSession(token, id, data)\n/ StudySession.edit(data, now)\n[organiser, upcoming, valid data]"];
 scheduled -> cancelled [label="GroupSessionService.cancelSession(token, id)\n/ StudySession.cancel(now)\n[organiser and upcoming]"];
 scheduled -> cancelled [label="GroupSessionService.deleteGroup(token, groupId)\n[future session of deleted group]"];
+scheduled -> scheduled [label="editSession rejected\n[invalid data or unauthorized organiser]",style=dashed,color="#B07040"];
 note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",fontsize=10,label="Rejected: invalid edit, non-organiser action, past session edit.\nCANCELLED sessions cannot be edited or reactivated.\nPast scheduled sessions remain SCHEDULED in this model.\nisUpcoming(now) is a query, not a state transition."];
 cancelled -> note [style=dotted,arrowhead=none,constraint=false];
 }

@@ -7,6 +7,7 @@ active [label="ACTIVE"]; suspended [label="SUSPENDED"];
 start -> active [label="IdentityService.registerStudent(data)\n[valid registration]"];
 active -> suspended [label="ModerationService.changeStudentStatus(..., SUSPENDED, reason)\n/ Account.changeStatus(SUSPENDED)\n[authorized administrator]"];
 suspended -> active [label="ModerationService.changeStudentStatus(..., ACTIVE, reason)\n/ Account.changeStatus(ACTIVE)\n[authorized administrator]"];
+active -> active [label="changeStatus(SUSPENDED) rejected\n[unauthorized or invalid request]",style=dashed,color="#B07040"];
 note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",label="Rejected: unauthorized or invalid status change.\nSuspension invalidates login sessions and blocks protected actions.\nReactivation permits login with valid credentials.\nisActive() is a query, not a state transition.",fontsize=10];
 suspended -> note [style=dotted,arrowhead=none,constraint=false];
 }

@@ -7,6 +7,7 @@ active [label="ACTIVE"]; deleted [label="DELETED"];
 start -> active [label="GroupSessionService.createGroup(token, data)\n[valid organiser and group data]"];
 active -> active [label="GroupSessionService.transferOwnership(token, id, newOwner)\n/ StudyGroup.transferOwnership(memberId)\n[valid member and authorised organiser]"];
 active -> deleted [label="GroupSessionService.deleteGroup(token, id)\n/ StudyGroup.markDeleted()\n[authorised organiser]"];
+active -> active [label="deleteGroup rejected\n[unauthorized member]",style=dashed,color="#B07040"];
 note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",fontsize=10,label="On deletion: cancel future sessions of this group (US-11).\nRejected: member deletion, joining a deleted/full group.\nRejected actions preserve the current state.\nDELETED has no reactivation transition."];
 deleted -> note [style=dotted,arrowhead=none,constraint=false];
 }

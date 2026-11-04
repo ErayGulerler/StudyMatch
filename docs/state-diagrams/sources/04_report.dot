@@ -6,6 +6,7 @@ start [shape=point,width=0.17,color=black,fillcolor=black,label=""];
 pending [label="PENDING"]; resolved [label="RESOLVED"];
 start -> pending [label="ModerationService.submitReport(token, studentId, reason)\n[valid reason and other student]"];
 pending -> resolved [label="ModerationService.resolveReport(token, id, outcome)\n/ Report.resolve(adminId, outcome, now)\n[authorized admin and written outcome]"];
+pending -> pending [label="resolveReport rejected\n[unauthorized admin or invalid outcome]",style=dashed,color="#B07040"];
 note [shape=note,style=filled,fillcolor="#FFF7E6",color="#C99A43",fontsize=10,label="Viewing or filtering reports does not change their state.\nRejected: empty reason, self-report, unauthorized resolution.\nResolving a report does not automatically suspend an account.\nRESOLVED is terminal for this report lifecycle."];
 resolved -> note [style=dotted,arrowhead=none,constraint=false];
 }

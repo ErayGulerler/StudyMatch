@@ -24,10 +24,18 @@
 <!-- start&#45;&gt;pending -->
 <g id="edge1" class="edge">
 <title>start&#45;&gt;pending</title>
-<path fill="none" stroke="#38404a" d="M50.77,-280.57C49.04,-266.99 44.93,-230.47 46.5,-200 46.87,-192.71 47.56,-184.83 48.31,-177.58"/>
-<polygon fill="#38404a" stroke="#38404a" points="51.12,-177.69 49.21,-169.43 45.55,-177.08 51.12,-177.69"/>
-<text text-anchor="middle" x="174" y="-214" font-family="Arial" font-size="10.00">ModerationService.submitReport(token, studentId, reason)</text>
-<text text-anchor="middle" x="174" y="-203" font-family="Arial" font-size="10.00">[valid reason and other student]</text>
+<path fill="none" stroke="#38404a" d="M51.5,-280.56C51.5,-263.42 51.5,-209.73 51.5,-177.25"/>
+<polygon fill="#38404a" stroke="#38404a" points="54.3,-177.09 51.5,-169.09 48.7,-177.09 54.3,-177.09"/>
+<text text-anchor="middle" x="179" y="-214" font-family="Arial" font-size="10.00">ModerationService.submitReport(token, studentId, reason)</text>
+<text text-anchor="middle" x="179" y="-203" font-family="Arial" font-size="10.00">[valid reason and other student]</text>
+</g>
+<!-- pending&#45;&gt;pending -->
+<g id="edge3" class="edge">
+<title>pending&#45;&gt;pending</title>
+<path fill="none" stroke="#b07040" stroke-dasharray="5,2" d="M97.75,-161.45C120.4,-162.88 140.5,-159.23 140.5,-150.5 140.5,-142.83 124.97,-139.08 105.83,-139.26"/>
+<polygon fill="#b07040" stroke="#b07040" points="105.64,-136.46 97.75,-139.55 105.85,-142.06 105.64,-136.46"/>
+<text text-anchor="middle" x="227.5" y="-153.5" font-family="Arial" font-size="10.00">resolveReport rejected</text>
+<text text-anchor="middle" x="227.5" y="-142.5" font-family="Arial" font-size="10.00">[unauthorized admin or invalid outcome]</text>
 </g>
 <!-- resolved -->
 <g id="node3" class="node">
@@ -38,11 +46,11 @@
 <!-- pending&#45;&gt;resolved -->
 <g id="edge2" class="edge">
 <title>pending&#45;&gt;resolved</title>
-<path fill="none" stroke="#38404a" d="M49.21,-131.57C48.15,-122.44 47.02,-111.14 46.5,-101 45.75,-86.35 45.75,-82.65 46.5,-68 46.87,-60.71 47.56,-52.83 48.31,-45.58"/>
-<polygon fill="#38404a" stroke="#38404a" points="51.12,-45.69 49.21,-37.43 45.55,-45.08 51.12,-45.69"/>
-<text text-anchor="middle" x="162.5" y="-93" font-family="Arial" font-size="10.00">ModerationService.resolveReport(token, id, outcome)</text>
-<text text-anchor="middle" x="162.5" y="-82" font-family="Arial" font-size="10.00">/ Report.resolve(adminId, outcome, now)</text>
-<text text-anchor="middle" x="162.5" y="-71" font-family="Arial" font-size="10.00">[authorized admin and written outcome]</text>
+<path fill="none" stroke="#38404a" d="M51.5,-131.97C51.5,-109.68 51.5,-71.01 51.5,-45.34"/>
+<polygon fill="#38404a" stroke="#38404a" points="54.3,-45.17 51.5,-37.17 48.7,-45.17 54.3,-45.17"/>
+<text text-anchor="middle" x="167.5" y="-93" font-family="Arial" font-size="10.00">ModerationService.resolveReport(token, id, outcome)</text>
+<text text-anchor="middle" x="167.5" y="-82" font-family="Arial" font-size="10.00">/ Report.resolve(adminId, outcome, now)</text>
+<text text-anchor="middle" x="167.5" y="-71" font-family="Arial" font-size="10.00">[authorized admin and written outcome]</text>
 </g>
 <!-- note -->
 <g id="node4" class="node">
@@ -56,9 +64,9 @@
 <text text-anchor="middle" x="294.5" y="-268" font-family="Arial" font-size="10.00">RESOLVED is terminal for this report lifecycle.</text>
 </g>
 <!-- resolved&#45;&gt;note -->
-<g id="edge3" class="edge">
+<g id="edge4" class="edge">
 <title>resolved&#45;&gt;note</title>
-<path fill="none" stroke="#38404a" stroke-dasharray="1,5" d="M103.11,-23.57C163.94,-29.46 259.9,-42.58 284.5,-68 331.93,-117 317.6,-204.87 304.92,-252.72"/>
+<path fill="none" stroke="#38404a" stroke-dasharray="1,5" d="M103.08,-23.51C165.76,-29.43 266.53,-42.65 293.5,-68 343.92,-115.4 327.9,-153.74 316.5,-222 314.78,-232.31 311.59,-243.19 308.17,-252.99"/>
 </g>
 </g>
 </svg>
