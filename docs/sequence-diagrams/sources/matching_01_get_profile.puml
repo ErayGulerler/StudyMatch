@@ -3,6 +3,7 @@ hide footbox
 skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 15
+skinparam dpi 160
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam ParticipantPadding 15
@@ -27,21 +28,21 @@ participant "REST Controller" as API
 participant ProfileService as S
 database PostgreSQL as DB
 title Read my profile | US-04
-Student -> FE: Open study profile
+Student -> FE: Open my profile
 FE -> API: HTTPS GET /api/v1/profiles/me\nAuthorization: Bearer <access_token>
 ref over FE, DB
-matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
 end ref
 
 API -> S: getProfile(verified sub)
-S -> DB: SELECT profile WHERE studentId = sub
+S -> DB: SELECT profile owned by sub
 DB --> S: Profile / absent
-alt profile exists
+alt saved profile exists
  S --> API: Profile
  API --> FE: 200 OK + Profile
-else no profile yet
+else no saved profile
  S --> API: NOT_FOUND
  API --> FE: 404 + ErrorEnvelope
 end
-FE --> Student: Show profile or create-profile prompt
+FE --> Student: Profile or first-save form
 @enduml

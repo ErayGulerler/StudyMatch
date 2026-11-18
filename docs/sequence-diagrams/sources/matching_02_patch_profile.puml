@@ -3,6 +3,7 @@ hide footbox
 skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 15
+skinparam dpi 160
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam ParticipantPadding 15
@@ -26,28 +27,30 @@ participant Frontend as FE
 participant "REST Controller" as API
 participant ProfileService as S
 database PostgreSQL as DB
-title Save my full profile | US-04
-Student -> FE: Save profile
-FE -> API: HTTPS PUT /api/v1/profiles/me\nAuthorization: Bearer <access_token>\nProfileInput (JSON)
+title Partially update my profile | US-04
+Student -> FE: Save changed profile fields
+FE -> API: HTTPS PATCH /api/v1/profiles/me\nAuthorization: Bearer <access_token>\nProfilePatch JSON
 ref over FE, DB
-matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
 end ref
 
-API -> S: saveProfile(verified sub, input)
-S -> DB: Validate subject UUIDs and read current profile
-DB --> S: Known subjects / existing profile
-alt invalid required fields or unknown subject
+API -> S: patchProfile(verified sub, changes)
+S -> DB: Read current profile; check subject UUIDs
+DB --> S: Current profile / absent; subject validity
+S -> S: Merge provided fields; preserve omitted fields
+alt empty patch or invalid merged profile
  S --> API: VALIDATION_ERROR; no write
  API --> FE: 422 + ErrorEnvelope
-else valid input
- S -> DB: Atomic INSERT or full UPDATE for sub
+else valid merged profile
+ S -> DB: Atomic save owned by sub
  DB --> S: Profile + created flag
  S --> API: Profile + created flag
- alt first profile created
-  API --> FE: 201 Created + Profile\nLocation: /api/v1/profiles/me
- else existing profile replaced
+ alt existing profile updated
   API --> FE: 200 OK + Profile
+ else first complete profile created
+  API --> FE: 201 Created + Profile\nLocation: /api/v1/profiles/me
  end
 end
-FE --> Student: Saved profile or validation feedback
+FE --> Student: Updated profile or validation feedback
+note over API,DB: First-save creation via PATCH is proposed for team integration.
 @enduml

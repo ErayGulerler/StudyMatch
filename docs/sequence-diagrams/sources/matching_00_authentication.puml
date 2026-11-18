@@ -3,6 +3,7 @@ hide footbox
 skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 15
+skinparam dpi 160
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam ParticipantPadding 15
@@ -26,7 +27,7 @@ participant Frontend as FE
 participant "REST Controller" as API
 participant IdentityService as S
 database PostgreSQL as DB
-title Shared protected-request guard
+title Shared authentication and permissions
 Student -> FE: Use protected action
 FE -> API: HTTPS request to /api/v1/...\nAuthorization: Bearer <access_token>
 API -> S: verifyTokenAndSession(token)

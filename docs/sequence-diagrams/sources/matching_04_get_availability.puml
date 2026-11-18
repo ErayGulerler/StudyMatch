@@ -3,6 +3,7 @@ hide footbox
 skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 15
+skinparam dpi 160
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam ParticipantPadding 15
@@ -26,22 +27,23 @@ participant Frontend as FE
 participant "REST Controller" as API
 participant ProfileService as S
 database PostgreSQL as DB
-title Delete an owned weekly slot | US-05
-Student -> FE: Delete slot
-FE -> API: HTTPS DELETE /api/v1/availability/me/{slotId}\nAuthorization: Bearer <access_token>
+title Read weekly availability | US-05
+Student -> FE: Open weekly schedule
+FE -> API: HTTPS GET /api/v1/availability/me\nAuthorization: Bearer <access_token>
 ref over FE, DB
-matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
 end ref
 
-API -> S: deleteSlot(verified sub, slotId)
-S -> DB: DELETE WHERE id=slotId AND owner=sub
-DB --> S: Affected row count
-alt one owned slot deleted
- S --> API: Deletion complete
- API --> FE: 204 No Content (no JSON body)
-else absent or owned by someone else
- S --> API: NOT_FOUND
- API --> FE: 404 + ErrorEnvelope
+API -> S: getAvailability(verified sub)
+S -> DB: SELECT schedule WHERE owner = sub
+alt database read succeeds
+ DB --> S: Weekly slots (possibly empty)
+ S --> API: Availability
+ API --> FE: 200 OK + {timeZone, items: [...]}
+else storage failure
+ DB --> S: Failure
+ S --> API: INTERNAL_ERROR
+ API --> FE: 500 + ErrorEnvelope
 end
-FE --> Student: Refresh availability or show not-found message
+FE --> Student: Schedule, empty state or retry message
 @enduml

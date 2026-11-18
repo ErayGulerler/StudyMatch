@@ -3,6 +3,7 @@ hide footbox
 skinparam backgroundColor white
 skinparam defaultFontName Arial
 skinparam defaultFontSize 15
+skinparam dpi 160
 skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam ParticipantPadding 15
@@ -26,27 +27,24 @@ participant Frontend as FE
 participant "REST Controller" as API
 participant ProfileService as S
 database PostgreSQL as DB
-title Edit an owned weekly slot | US-05
-Student -> FE: Edit slot
-FE -> API: HTTPS PATCH /api/v1/availability/me/{slotId}\nAuthorization: Bearer <access_token>\nSlotPatch (JSON)
+title View a public profile | US-04
+Student -> FE: Open another student profile
+FE -> API: HTTPS GET /api/v1/profiles/{userId}\nAuthorization: Bearer <access_token>
 ref over FE, DB
-matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
 end ref
 
-API -> S: updateSlot(verified sub, slotId, patch)
-S -> DB: SELECT slot WHERE id=slotId AND owner=sub
-DB --> S: Slot / absent
-alt absent or owned by someone else
- S --> API: NOT_FOUND; no write
+API -> S: providePublicProfile(verified principal, userId)
+S -> DB: Read target account + profile by UUID
+DB --> S: Target data / absent
+alt ACTIVE STUDENT with complete profile
+ S -> S: Project public fields only
+ S --> API: PublicProfile
+ API --> FE: 200 OK + PublicProfile
+else missing or ineligible target
+ S --> API: NOT_FOUND
  API --> FE: 404 + ErrorEnvelope
-else empty patch or invalid resulting slot
- S --> API: VALIDATION_ERROR; preserve old slot
- API --> FE: 422 + ErrorEnvelope
-else valid owned slot
- S -> DB: Atomic UPDATE; owner predicate retained
- DB --> S: Updated Slot
- S --> API: Slot
- API --> FE: 200 OK + Slot
 end
-FE --> Student: Updated slot or error feedback
+FE --> Student: Public profile or unavailable message
+note over S,DB: Target UUID never grants permissions. No email, credentials or private schedule.
 @enduml
