@@ -1,0 +1,54 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam dpi 160
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant MatchingService as S
+database PostgreSQL as DB
+title Find compatible partners | US-06
+Student -> FE: Search Mathematics, online
+FE -> API: HTTPS GET /api/v1/matches?subject=Mathematics&mode=ONLINE\nAuthorization: Bearer <access_token>
+ref over FE, DB
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
+end ref
+
+API -> S: findPartners(verified sub, subject, mode, university)
+S -> DB: Read own profile/slots; resolve subject name to UUID(s)
+DB --> S: Own data + subject resolution
+alt invalid mode or unknown subject
+ S --> API: VALIDATION_ERROR
+ API --> FE: 422 + ErrorEnvelope
+else profile incomplete or no availability
+ S --> API: PROFILE_INCOMPLETE
+ API --> FE: 409 + ErrorEnvelope
+else ready to search
+ S -> DB: Load ACTIVE STUDENT candidates + profiles/slots
+ DB --> S: Candidate data
+ S -> S: Exclude self; apply ALL filters\nShared subject + positive overlap\nScore descending, userId ascending
+ S --> API: Results
+ API --> FE: 200 OK + Results (items may be empty)
+end
+FE --> Student: Partners, empty state or setup feedback
+@enduml

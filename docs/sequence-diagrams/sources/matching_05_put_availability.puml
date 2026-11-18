@@ -1,0 +1,56 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam dpi 160
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant ProfileService as S
+database PostgreSQL as DB
+title Replace the whole schedule | US-05
+Student -> FE: Save complete edited schedule
+FE -> API: HTTPS PUT /api/v1/availability/me\nAuthorization: Bearer <access_token>\nAvailabilityInput JSON
+ref over FE, DB
+matching_00_authentication: valid JWT, ACTIVE account, STUDENT role
+end ref
+
+API -> S: replaceAvailability(verified sub, schedule)
+S -> S: Validate timeZone and ALL slot ranges
+alt invalid slot or missing required field
+ S --> API: VALIDATION_ERROR; preserve old schedule
+ API --> FE: 422 + ErrorEnvelope
+else valid complete schedule (items may be empty)
+ S -> DB: BEGIN; replace own schedule atomically
+ alt transaction commits
+  DB --> S: Saved schedule
+  S --> API: Availability
+  API --> FE: 200 OK + Availability
+ else storage failure
+  DB --> S: ROLLBACK; old schedule remains
+  S --> API: INTERNAL_ERROR
+  API --> FE: 500 + ErrorEnvelope
+ end
+end
+FE --> Student: Updated schedule or error
+note over S,DB: items: [] clears availability. Repeated PUT never appends slots.
+@enduml
