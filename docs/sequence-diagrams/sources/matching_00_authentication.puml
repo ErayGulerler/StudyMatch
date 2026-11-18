@@ -1,0 +1,53 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant IdentityService as S
+database PostgreSQL as DB
+title Shared protected-request guard
+Student -> FE: Use protected action
+FE -> API: HTTPS request to /api/v1/...\nAuthorization: Bearer <access_token>
+API -> S: verifyTokenAndSession(token)
+S -> S: Verify signature, issuer, audience and expiry
+alt missing / invalid / expired JWT
+ S --> API: UNAUTHORIZED
+ API --> FE: 401 + ErrorEnvelope
+else valid JWT
+ S -> DB: Read account and session for verified sub
+ DB --> S: Account / session state
+ alt missing account or revoked session
+  S --> API: UNAUTHORIZED
+  API --> FE: 401 + ErrorEnvelope
+ else account not ACTIVE or role not STUDENT
+  S --> API: FORBIDDEN
+  API --> FE: 403 + ErrorEnvelope
+ else authorized
+  S --> API: Verified principal (sub, STUDENT)
+  API -> API: Continue selected module operation
+ end
+end
+FE --> Student: Result or sign-in / permission message
+note over S,DB: Database failure -> 500 ErrorEnvelope; no business operation runs.
+@enduml

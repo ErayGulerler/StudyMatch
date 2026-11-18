@@ -1,0 +1,53 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant ProfileService as S
+database PostgreSQL as DB
+title Save my full profile | US-04
+Student -> FE: Save profile
+FE -> API: HTTPS PUT /api/v1/profiles/me\nAuthorization: Bearer <access_token>\nProfileInput (JSON)
+ref over FE, DB
+matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+end ref
+
+API -> S: saveProfile(verified sub, input)
+S -> DB: Validate subject UUIDs and read current profile
+DB --> S: Known subjects / existing profile
+alt invalid required fields or unknown subject
+ S --> API: VALIDATION_ERROR; no write
+ API --> FE: 422 + ErrorEnvelope
+else valid input
+ S -> DB: Atomic INSERT or full UPDATE for sub
+ DB --> S: Profile + created flag
+ S --> API: Profile + created flag
+ alt first profile created
+  API --> FE: 201 Created + Profile\nLocation: /api/v1/profiles/me
+ else existing profile replaced
+  API --> FE: 200 OK + Profile
+ end
+end
+FE --> Student: Saved profile or validation feedback
+@enduml

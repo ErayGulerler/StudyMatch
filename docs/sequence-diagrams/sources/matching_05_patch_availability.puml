@@ -1,0 +1,52 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant ProfileService as S
+database PostgreSQL as DB
+title Edit an owned weekly slot | US-05
+Student -> FE: Edit slot
+FE -> API: HTTPS PATCH /api/v1/availability/me/{slotId}\nAuthorization: Bearer <access_token>\nSlotPatch (JSON)
+ref over FE, DB
+matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+end ref
+
+API -> S: updateSlot(verified sub, slotId, patch)
+S -> DB: SELECT slot WHERE id=slotId AND owner=sub
+DB --> S: Slot / absent
+alt absent or owned by someone else
+ S --> API: NOT_FOUND; no write
+ API --> FE: 404 + ErrorEnvelope
+else empty patch or invalid resulting slot
+ S --> API: VALIDATION_ERROR; preserve old slot
+ API --> FE: 422 + ErrorEnvelope
+else valid owned slot
+ S -> DB: Atomic UPDATE; owner predicate retained
+ DB --> S: Updated Slot
+ S --> API: Slot
+ API --> FE: 200 OK + Slot
+end
+FE --> Student: Updated slot or error feedback
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant MatchingService as S
+database PostgreSQL as DB
+title Find compatible partners | US-06
+Student -> FE: Search for partners
+FE -> API: HTTPS GET /api/v1/matches?university=PW&subjectId={UUID}\nAuthorization: Bearer <access_token>
+ref over FE, DB
+matching_00_authentication: validate JWT, ACTIVE account, STUDENT role
+end ref
+
+API -> S: findPartners(verified sub, filters)
+S -> DB: Load own profile and weekly slots
+DB --> S: Profile + availability
+alt profile incomplete or no availability
+ S --> API: PROFILE_INCOMPLETE
+ API --> FE: 409 Conflict + ErrorEnvelope
+else ready to search
+ S -> DB: Load ACTIVE STUDENT candidates with profiles / slots
+ DB --> S: Candidate data
+ S -> S: Exclude self; union overlapping slots; apply filters\nRequire shared subject + positive overlap\nScore descending, then UUID ascending
+ S --> API: Results
+ API --> FE: 200 OK + Results (items may be empty)
+end
+FE --> Student: Partners, empty state or setup prompt
+note over API,S: Malformed query / UUID -> 400; unknown subject filter -> 422.
+@enduml
