@@ -1,0 +1,36 @@
+@startuml
+title StudyMatch CP3 - User Login
+autonumber
+hide footbox
+skinparam sequenceMessageAlign center
+actor Student
+participant Frontend
+participant AuthController
+participant IdentityService
+database Database
+Student -> Frontend: Enter email and password
+Frontend -> AuthController: POST /api/v1/auth/login\n{email, password}
+alt Invalid payload
+  AuthController --> Frontend: 422 VALIDATION_ERROR
+  Frontend --> Student: Show validation errors
+else Valid payload
+  AuthController -> IdentityService: authenticate(email, password)
+  IdentityService -> Database: Find user by normalized email
+  Database --> IdentityService: User / not found
+  IdentityService -> IdentityService: Verify password with Argon2id
+  alt Unknown email or incorrect password
+    IdentityService --> AuthController: Invalid credentials
+    AuthController --> Frontend: 401 INVALID_CREDENTIALS
+    Frontend --> Student: Show generic login error
+  else Account SUSPENDED or DEACTIVATED
+    IdentityService --> AuthController: Account inactive
+    AuthController --> Frontend: 403 ACCOUNT_INACTIVE
+    Frontend --> Student: Account unavailable
+  else Correct password and ACTIVE account
+    IdentityService -> IdentityService: Sign JWT (sub=userId, role, exp)
+    IdentityService --> AuthController: Signed access token
+    AuthController --> Frontend: 200 OK + LoginResponse JSON
+    Frontend --> Student: Authenticated
+  end
+end
+@enduml

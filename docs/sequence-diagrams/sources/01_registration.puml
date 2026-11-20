@@ -1,0 +1,46 @@
+@startuml
+title StudyMatch CP3 - User Registration
+autonumber
+hide footbox
+skinparam sequenceMessageAlign center
+actor Student
+participant Frontend
+participant AuthController
+participant IdentityService
+database Database
+Student -> Frontend: Submit registration form
+Frontend -> AuthController: POST /api/v1/auth/register\n{email, password, displayName}
+alt Invalid payload
+  AuthController --> Frontend: 422 VALIDATION_ERROR
+  Frontend --> Student: Show validation errors
+else Valid payload
+  AuthController -> IdentityService: register(email, password, displayName)
+  IdentityService -> Database: Find user by normalized email
+  alt Database unavailable
+    Database --> IdentityService: Database error
+    IdentityService --> AuthController: Registration failed
+    AuthController --> Frontend: 500 INTERNAL_ERROR
+    Frontend --> Student: Show generic error
+  else Email already exists
+    Database --> IdentityService: Existing user
+    IdentityService --> AuthController: Duplicate email
+    AuthController --> Frontend: 409 CONFLICT
+    Frontend --> Student: Email already registered
+  else Email available
+    Database --> IdentityService: Not found
+    IdentityService -> IdentityService: Hash password (Argon2id)
+    IdentityService -> Database: INSERT user (passwordHash, ACTIVE, STUDENT)
+    alt Insert fails (database error)
+      Database --> IdentityService: Database error
+      IdentityService --> AuthController: Registration failed
+      AuthController --> Frontend: 500 INTERNAL_ERROR
+      Frontend --> Student: Show generic error
+    else Insert succeeds
+      Database --> IdentityService: New userId (UUID)
+      IdentityService --> AuthController: Registered user (without passwordHash)
+      AuthController --> Frontend: 201 Created + Account JSON
+      Frontend --> Student: Registration successful
+    end
+  end
+end
+@enduml

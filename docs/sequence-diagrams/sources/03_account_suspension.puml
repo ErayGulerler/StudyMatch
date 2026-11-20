@@ -1,0 +1,54 @@
+@startuml
+title StudyMatch CP3 - Account Suspension
+autonumber
+hide footbox
+skinparam sequenceMessageAlign center
+actor Admin
+participant Frontend
+participant AccountController
+participant IdentityService
+database Database
+Admin -> Frontend: Select user and suspension reason
+Frontend -> AccountController: PATCH /api/v1/admin/users/{userId}/status\nAuthorization: Bearer JWT\n{status: SUSPENDED, reason}
+alt Missing or invalid JWT
+  AccountController --> Frontend: 401 UNAUTHORIZED
+  Frontend --> Admin: Request login
+else Valid JWT but role is not ADMIN
+  AccountController --> Frontend: 403 FORBIDDEN
+  Frontend --> Admin: Permission denied
+else ADMIN authenticated
+
+  AccountController -> IdentityService: suspendUser(actorId, targetUserId, reason)
+  alt Invalid userId or missing reason
+    IdentityService --> AccountController: Validation failed
+    AccountController --> Frontend: 422 VALIDATION_ERROR
+    Frontend --> Admin: Show validation errors
+  else Admin attempts self-suspension
+    IdentityService --> AccountController: Self-suspension forbidden
+    AccountController --> Frontend: 403 FORBIDDEN
+    Frontend --> Admin: Action rejected
+  else Valid target ID and reason
+    IdentityService -> Database: Read target user and status
+    Database --> IdentityService: User / not found
+    alt Target user not found
+      IdentityService --> AccountController: User not found
+      AccountController --> Frontend: 404 USER_NOT_FOUND
+      Frontend --> Admin: User not found
+    else Already SUSPENDED
+      IdentityService --> AccountController: Invalid state transition
+      AccountController --> Frontend: 409 STATUS_CONFLICT
+      Frontend --> Admin: Account already suspended
+    else Target account DEACTIVATED
+      IdentityService --> AccountController: Invalid state transition
+      AccountController --> Frontend: 409 STATUS_CONFLICT
+      Frontend --> Admin: Account cannot be suspended
+    else Target account ACTIVE
+      IdentityService -> Database: Atomic UPDATE status=SUSPENDED + audit record
+      Database --> IdentityService: Updated user
+      IdentityService --> AccountController: Updated status
+      AccountController --> Frontend: 200 OK + Account JSON
+      Frontend --> Admin: Suspension confirmed
+    end
+  end
+end
+@enduml
