@@ -19,6 +19,7 @@ Example: `GET /api/v1/matches?subject=Mathematics&mode=ONLINE`.
 `subject` is a catalogue name resolved to UUID(s), using trimmed case-insensitive exact matching. Profile `subjects` remain UUID arrays. `mode` filters supported meeting modes; optional `university` retains the US-06 filter. All supplied filters combine with AND. Unknown subject or invalid mode returns 422.
 
 ## Files
+- [Four-page presentation](StudyMatch_CP3_Eray_Presentation_4_Pages.pdf): brief slides for presenting Profile & Matching.
 - `../api/matching.yaml`: standalone OpenAPI 3.0.3 module.
 - `sources/matching_*.puml` and `diagrams/matching_*.svg`: seven editable/rendered sequences.
 - `StudyMatch_CP3_Profile_Matching_Eray_Gulerler - Needs Integration Review.pdf`: submission copy.
