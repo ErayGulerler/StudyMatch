@@ -1,0 +1,74 @@
+@startuml
+!pragma teoz true
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam dpi 200
+skinparam shadowing false
+skinparam TitleFontSize 24
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam NoteBackgroundColor #FFF1E7
+skinparam NoteBorderColor #F66B22
+skinparam ArrowThickness 1.5
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Admin
+participant Frontend as FE
+participant "REST Controller" as API
+participant IdentityService as S
+database PostgreSQL as DB
+actor "Reported\nStudent" as RS
+title Block (suspend) a reported user | US-17 + US-18
+Admin -> FE: From report: suspend reported student + reason
+FE -> API: PATCH /api/v1/admin/users/{userId}/status\nAuthorization: Bearer <access_token>\nAccountStatusUpdate { status: "SUSPENDED", reason }
+API -> S: changeAccountStatus(token, userId, SUSPENDED, reason)
+S -> S: Verify JWT; require role ADMIN
+alt missing / invalid / expired token
+ S --> API: UNAUTHORIZED
+ & API --> FE: 401 Unauthorized
+else caller is not ADMIN, or userId == caller (self-suspension)
+ S --> API: FORBIDDEN; no update
+ & API --> FE: 403 Forbidden
+else caller is ADMIN
+ S -> DB: SELECT account by userId FOR UPDATE
+ DB --> S: Account / none
+ alt account not found or not a STUDENT
+  S --> API: USER_NOT_FOUND
+  & API --> FE: 404 Not Found
+ else reason shorter than 5 chars or unknown status
+  S --> API: VALIDATION_ERROR; no write
+  & API --> FE: 422 Unprocessable Content
+ else account already SUSPENDED
+  S --> API: STATUS_CONFLICT
+  & API --> FE: 409 Conflict
+ else database error
+  S --> API: INTERNAL_ERROR; rolled back
+  & API --> FE: 500 Internal Server Error
+ else account ACTIVE
+  S -> DB: One transaction: status = SUSPENDED;\nINSERT AccountStatusChange (audit);\nrevoke the student's sessions
+  DB --> S: Committed
+  S --> API: Account
+  API --> FE: 200 OK + Account (accountStatus: SUSPENDED)
+ end
+end
+FE --> Admin: Account suspended or error message
+== Effect on the blocked student ==
+RS -> API: Any protected request with old access token
+API --> RS: 401 UNAUTHORIZED (session revoked)
+note over API,DB: Login now returns 403 (suspended); suspended students are excluded from matches.\nThe report itself is resolved separately (02).
+@enduml

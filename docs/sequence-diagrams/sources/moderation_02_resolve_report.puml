@@ -1,0 +1,77 @@
+@startuml
+!pragma teoz true
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam dpi 200
+skinparam shadowing false
+skinparam TitleFontSize 24
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam NoteBackgroundColor #FFF1E7
+skinparam NoteBorderColor #F66B22
+skinparam ArrowThickness 1.5
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Admin
+participant Frontend as FE
+participant "REST Controller" as API
+participant ModerationService as S
+database PostgreSQL as DB
+title Review and resolve a report | US-17
+Admin -> FE: Open pending reports
+FE -> API: GET /api/v1/admin/reports?status=PENDING&page=0&size=20\nAuthorization: Bearer <access_token>
+API -> S: listReports(token, PENDING, page, size)
+S -> DB: SELECT reports WHERE status = PENDING (paged)
+DB --> S: Report[] + total
+S --> API: ReportPage
+API --> FE: 200 OK + ReportPage { items: Report[], page, size, totalItems }
+Admin -> FE: Resolve report with written outcome
+FE -> API: PATCH /api/v1/admin/reports/{reportId}\nAuthorization: Bearer <access_token>\nResolveReportRequest { status: "RESOLVED", outcome }
+API -> S: resolveReport(token, reportId, outcome)
+S -> S: Verify JWT; require role ADMIN
+alt missing / invalid / expired token
+ S --> API: UNAUTHORIZED
+ & API --> FE: 401 Unauthorized
+else caller is not ADMIN
+ S --> API: FORBIDDEN
+ & API --> FE: 403 Forbidden
+else caller is ADMIN
+ S -> DB: SELECT report by reportId FOR UPDATE
+ DB --> S: Report / none
+ alt report not found
+  S --> API: REPORT_NOT_FOUND
+  & API --> FE: 404 Not Found
+ else empty outcome or status != "RESOLVED"
+  S --> API: VALIDATION_ERROR; no write
+  & API --> FE: 422 Unprocessable Content
+ else report already RESOLVED (terminal state)
+  S --> API: STATUS_CONFLICT
+  & API --> FE: 409 Conflict
+ else database error
+  S --> API: INTERNAL_ERROR; rolled back
+  & API --> FE: 500 Internal Server Error
+ else report PENDING
+  S -> DB: UPDATE report: RESOLVED, outcome,\nreviewedById = sub, resolvedAt = now UTC
+  DB --> S: Updated report
+  S --> API: Report
+  API --> FE: 200 OK + Report
+ end
+end
+FE --> Admin: Resolved report or error message
+note over S,DB: Resolving a report does not suspend the account (see 03).
+@enduml

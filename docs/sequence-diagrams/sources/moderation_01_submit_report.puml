@@ -1,0 +1,70 @@
+@startuml
+!pragma teoz true
+hide footbox
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 18
+skinparam dpi 200
+skinparam shadowing false
+skinparam TitleFontSize 24
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 15
+skinparam BoxPadding 8
+skinparam NoteBackgroundColor #FFF1E7
+skinparam NoteBorderColor #F66B22
+skinparam ArrowThickness 1.5
+skinparam sequence {
+ ArrowColor #139D90
+ LifeLineBorderColor #A5BFC2
+ ParticipantBackgroundColor #183840
+ ParticipantBorderColor #183840
+ ParticipantFontColor white
+ ActorBorderColor #183840
+ ActorFontColor #183840
+ GroupBorderColor #139D90
+ GroupBackgroundColor #EAF6F3
+ GroupHeaderFontColor #183840
+ NoteBackgroundColor #FFF1E7
+ NoteBorderColor #F66B22
+}
+actor Student
+participant Frontend as FE
+participant "REST Controller" as API
+participant ModerationService as S
+database PostgreSQL as DB
+title Submit a report | US-16
+Student -> FE: Report student + reason
+FE -> API: POST /api/v1/reports\nAuthorization: Bearer <access_token>\nSubmitReportRequest { reportedUserId, reason }
+API -> S: submitReport(token, reportedUserId, reason)
+S -> S: Verify JWT; reporterId = sub (never from body)
+alt missing / invalid / expired token
+ S --> API: UNAUTHORIZED
+ & API --> FE: 401 Unauthorized
+else caller SUSPENDED or role != STUDENT
+ S --> API: FORBIDDEN
+ & API --> FE: 403 Forbidden
+else caller authenticated as ACTIVE STUDENT
+ S -> DB: SELECT ACTIVE student by reportedUserId;\nSELECT PENDING report (reporterId, reportedUserId)
+ DB --> S: Student / none; existing report / none
+ alt reported student not found
+  S --> API: USER_NOT_FOUND
+  & API --> FE: 404 Not Found
+ else empty reason or reportedUserId == reporterId
+  S --> API: VALIDATION_ERROR; no write
+  & API --> FE: 422 Unprocessable Content
+ else same reporter already has a PENDING report on this student
+  S --> API: DUPLICATE_REPORT (safe POST retry)
+  & API --> FE: 409 Conflict
+ else database error
+  S --> API: INTERNAL_ERROR; nothing saved
+  & API --> FE: 500 Internal Server Error
+ else valid
+  S -> DB: INSERT report (status PENDING, submittedAt = now UTC)
+  DB --> S: Report (reportId: UUID)
+  S --> API: Report
+  API --> FE: 201 Created + Report
+ end
+end
+FE --> Student: Confirmation or error message
+note over S,DB: Reporting never changes the reported account's status.
+@enduml
